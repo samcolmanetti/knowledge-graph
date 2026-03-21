@@ -6,6 +6,13 @@ export function resolveNodeName(name: string, store: Store): NameMatch[] {
     'SELECT id, title, frontmatter FROM nodes'
   ).all() as Array<{ id: string; title: string; frontmatter: string }>;
 
+  // Priority 0: exact ID match (with or without .md extension)
+  const nameWithMd = name.endsWith('.md') ? name : name + '.md';
+  const idMatch = allNodes.filter(n => n.id === name || n.id === nameWithMd);
+  if (idMatch.length > 0) {
+    return idMatch.map(n => ({ nodeId: n.id, title: n.title, matchType: 'id' as const }));
+  }
+
   // Priority 1: exact title match
   const exact = allNodes.filter(n => n.title === name);
   if (exact.length > 0) {

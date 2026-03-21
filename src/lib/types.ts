@@ -51,5 +51,5 @@ export interface SubgraphResult {
 export interface NameMatch {
   nodeId: string;
   title: string;
-  matchType: 'exact' | 'case-insensitive' | 'alias' | 'substring';
+  matchType: 'id' | 'exact' | 'case-insensitive' | 'alias' | 'substring';
 }

@@ -26,8 +26,9 @@ const server = new McpServer({
 function requireMatch(name: string): string {
   const matches = resolveNodeName(name, store);
   if (matches.length === 0) throw new Error(`No node found matching "${name}"`);
-  if (matches.length > 1 && matches[0].matchType !== 'exact') {
-    throw new Error(`Ambiguous: ${matches.map(m => m.title).join(', ')}`);
+  if (matches.length > 1 && matches[0].matchType !== 'exact' && matches[0].matchType !== 'id') {
+    const candidates = matches.map(m => `"${m.title}" (${m.nodeId})`).join(', ');
+    throw new Error(`Ambiguous name "${name}". Candidates: ${candidates}. Use the full node ID to disambiguate.`);
   }
   return matches[0].nodeId;
 }

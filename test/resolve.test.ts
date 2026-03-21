@@ -53,4 +53,23 @@ describe('resolveNodeName', () => {
     const matches = resolveNodeName('Alice Smith', store);
     expect(matches[0].matchType).toBe('exact');
   });
+
+  it('matches by exact node ID (file path)', () => {
+    const matches = resolveNodeName('People/Alice Smith.md', store);
+    expect(matches).toHaveLength(1);
+    expect(matches[0].matchType).toBe('id');
+    expect(matches[0].nodeId).toBe('People/Alice Smith.md');
+  });
+
+  it('matches by node ID without .md extension', () => {
+    const matches = resolveNodeName('Concepts/Widget Theory', store);
+    expect(matches).toHaveLength(1);
+    expect(matches[0].matchType).toBe('id');
+    expect(matches[0].nodeId).toBe('Concepts/Widget Theory.md');
+  });
+
+  it('prefers ID match over title match', () => {
+    const matches = resolveNodeName('People/Alice Smith.md', store);
+    expect(matches[0].matchType).toBe('id');
+  });
 });

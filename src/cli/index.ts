@@ -41,8 +41,8 @@ function requireSingleMatch(name: string, store: Store): string {
     console.error(`No node found matching "${name}"`);
     process.exit(1);
   }
-  if (matches.length > 1 && matches[0].matchType !== 'exact') {
-    output({ ambiguous: true, candidates: matches });
+  if (matches.length > 1 && matches[0].matchType !== 'exact' && matches[0].matchType !== 'id') {
+    output({ ambiguous: true, hint: 'Use the full node ID to disambiguate', candidates: matches });
     process.exit(1);
   }
   return matches[0].nodeId;
