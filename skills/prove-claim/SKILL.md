@@ -79,7 +79,7 @@ Report your findings with:
 When a question involves **who** originated, created, or owns something, you MUST check attribution before presenting results.
 
 Idea nodes have frontmatter and content that records provenance:
-- `Originated by: Jesse` / `Originated by: Nathan Stoll` — in the Status section
+- `Originated by: Alice` / `Originated by: Bob` — in the Status section
 - `source:` field in frontmatter — where the idea came from (e.g., `whatsapp/Harper Reed`)
 - `first_mentioned:` — when it first appeared
 - Conversation History sections name who proposed what
@@ -89,7 +89,7 @@ Idea nodes have frontmatter and content that records provenance:
 2. The `source` frontmatter field
 3. The conversation history for who proposed it
 
-If the question is "Jesse's ideas" or "what did person X come up with," **filter by attribution**. An idea that appears in Jesse's vault is not necessarily Jesse's idea — it may have been proposed by a collaborator and recorded here. Getting attribution wrong undermines trust in everything else you report.
+If the question is "my ideas" or "what did person X come up with," **filter by attribution**. An idea that appears in the vault is not necessarily the vault owner's idea — it may have been proposed by a collaborator and recorded here. Getting attribution wrong undermines trust in everything else you report.
 
 When presenting results that involve attribution, explicitly state the provenance: "This was originated by X" or "This came from Y in a conversation on Z date."
 
