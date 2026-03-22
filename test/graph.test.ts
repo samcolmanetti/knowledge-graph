@@ -82,4 +82,16 @@ describe('KnowledgeGraph', () => {
     const central = kg.centralNodes(10);
     expect(central.length).toBeGreaterThan(0);
   });
+
+  it('computes PageRank even with isolated nodes', () => {
+    // D is isolated — PageRank should still work on the connected component
+    const central = kg.centralNodes(10);
+    // C should rank high — it receives edges from both A and B
+    const scores = new Map(central.map(n => [n.id, n.score]));
+    expect(scores.has('c.md')).toBe(true);
+    // Isolated node D should have lowest score
+    const dScore = scores.get('d.md') ?? 0;
+    const cScore = scores.get('c.md') ?? 0;
+    expect(cScore).toBeGreaterThan(dScore);
+  });
 });

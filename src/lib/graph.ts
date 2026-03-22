@@ -2,20 +2,39 @@ import Graph from 'graphology';
 import louvain from 'graphology-communities-louvain';
 import betweennessCentrality from 'graphology-metrics/centrality/betweenness.js';
 import pagerank from 'graphology-metrics/centrality/pagerank.js';
-import { degreeCentrality } from 'graphology-metrics/centrality/degree.js';
 import type { Store } from './store.js';
 import type { PathResult, SubgraphResult, Community } from './types.js';
 
 /**
- * Try PageRank first, fall back to degree centrality if it fails to converge
- * (common with disconnected components).
+ * Run PageRank, filtering out isolated nodes that prevent convergence.
+ * Isolates get a score of 0.
  */
 function safeRank(graph: Graph): Record<string, number> {
-  try {
-    return pagerank(graph, { maxIterations: 1000, tolerance: 1e-4 });
-  } catch {
-    return degreeCentrality(graph);
+  const scores: Record<string, number> = {};
+
+  // Separate connected nodes from isolates
+  const connected = new Graph({ multi: false, type: 'undirected' });
+  graph.forEachNode((id, attrs) => {
+    if (graph.degree(id) > 0) {
+      connected.addNode(id, attrs);
+    } else {
+      scores[id] = 0;
+    }
+  });
+  graph.forEachEdge((_edge, _attrs, source, target) => {
+    if (connected.hasNode(source) && connected.hasNode(target) && !connected.hasEdge(source, target)) {
+      connected.addEdge(source, target);
+    }
+  });
+
+  if (connected.order === 0) return scores;
+
+  const pr = pagerank(connected, { maxIterations: 1000, tolerance: 1e-6 });
+  for (const [id, score] of Object.entries(pr)) {
+    scores[id] = score;
   }
+
+  return scores;
 }
 
 interface NeighborInfo {
