@@ -4,5 +4,19 @@
   "description": "Query and traverse an Obsidian vault as a knowledge graph. Semantic search, path finding, community detection, and graph analysis — all local.",
   "author": {
     "name": "Jesse Vincent"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/check-rebuild.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
   }
 }

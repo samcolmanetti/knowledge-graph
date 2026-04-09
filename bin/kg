@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Knowledge-graph CLI wrapper
+# Pins to Volta's Node to match the MCP server and avoid native module version conflicts
+SCRIPT="$(readlink -f "$0" 2>/dev/null || python3 -c "import os; print(os.path.realpath('$0'))")"
+DIR="$(cd "$(dirname "$SCRIPT")/.." && pwd)"
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
+cd "$DIR" && exec ./node_modules/.bin/tsx src/cli/index.ts "$@"

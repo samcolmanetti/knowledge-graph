@@ -10,6 +10,7 @@ export class Store {
     this.db.pragma('journal_mode = WAL');
     sqliteVec.load(this.db);
     this.createSchema();
+    this.migrate();
   }
 
   private createSchema(): void {
@@ -25,7 +26,8 @@ export class Store {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         source_id TEXT NOT NULL,
         target_id TEXT NOT NULL,
-        context TEXT NOT NULL DEFAULT ''
+        context TEXT NOT NULL DEFAULT '',
+        edge_type TEXT NOT NULL DEFAULT 'wiki-link'
       );
 
       CREATE INDEX IF NOT EXISTS idx_edges_source ON edges(source_id);
@@ -50,6 +52,14 @@ export class Store {
       CREATE VIRTUAL TABLE IF NOT EXISTS nodes_vec
         USING vec0(embedding float[384]);
     `);
+  }
+
+  private migrate(): void {
+    // Add edge_type column if missing (existing DBs created before this change)
+    const cols = this.db.prepare("PRAGMA table_info('edges')").all() as Array<{ name: string }>;
+    if (!cols.some(c => c.name === 'edge_type')) {
+      this.db.exec("ALTER TABLE edges ADD COLUMN edge_type TEXT NOT NULL DEFAULT 'wiki-link'");
+    }
   }
 
   upsertNode(node: ParsedNode): void {
@@ -103,8 +113,8 @@ export class Store {
 
   insertEdge(edge: ParsedEdge): void {
     this.db.prepare(
-      'INSERT INTO edges (source_id, target_id, context) VALUES (?, ?, ?)'
-    ).run(edge.sourceId, edge.targetId, edge.context);
+      'INSERT INTO edges (source_id, target_id, context, edge_type) VALUES (?, ?, ?, ?)'
+    ).run(edge.sourceId, edge.targetId, edge.context, edge.edgeType ?? 'wiki-link');
   }
 
   getEdgesFrom(nodeId: string): Array<ParsedEdge & { id: number }> {

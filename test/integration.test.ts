@@ -101,10 +101,13 @@ describe('Integration: full pipeline', () => {
     expect(central.length).toBeGreaterThan(0);
   });
 
-  it('orphan node exists but is isolated', () => {
+  it('orphan node has no direct wiki-link neighbors but may connect via hub nodes', () => {
     const orphan = store.getNode('orphan.md');
     expect(orphan).toBeDefined();
-    const neighbors = kg.neighbors('orphan.md', 1);
-    expect(neighbors).toHaveLength(0);
+    // Orphan has tags, so hub nodes connect it to _tag/* hubs.
+    // Verify it has no wiki-link edges (its original purpose: no [[links]]).
+    const wikiEdges = store.getEdgesFrom('orphan.md')
+      .filter((e: any) => !e.context.startsWith('tags:'));
+    expect(wikiEdges).toHaveLength(0);
   });
 });

@@ -3,6 +3,7 @@ import { join } from 'path';
 import { parseVault } from './parser.js';
 import type { Store } from './store.js';
 import { Embedder } from './embedder.js';
+import type { ParsedNode, EdgeType } from './types.js';
 import { KnowledgeGraph } from './graph.js';
 
 export interface IndexStats {
@@ -69,6 +70,9 @@ export class IndexPipeline {
       stats.nodesIndexed++;
     }
 
+    // Unit 4: Create hub nodes for shared attributes (tags, category, components)
+    await this.createHubNodes(nodes, stats);
+
     // Create stub nodes
     for (const stubId of stubIds) {
       if (!this.store.getNode(stubId)) {
@@ -94,5 +98,67 @@ export class IndexPipeline {
     }
 
     return stats;
+  }
+
+  /** Unit 4: Create hub nodes for shared tags, categories, and components */
+  private async createHubNodes(nodes: ParsedNode[], stats: IndexStats): Promise<void> {
+    const hubConfigs: Array<{ field: string; prefix: string; edgeType: EdgeType }> = [
+      { field: 'tags', prefix: '_tag', edgeType: 'tag' },
+      { field: 'category', prefix: '_category', edgeType: 'category' },
+      { field: 'components', prefix: '_component', edgeType: 'component' },
+    ];
+
+    for (const { field, prefix, edgeType } of hubConfigs) {
+      // Collect values → member node IDs
+      const valueToMembers = new Map<string, string[]>();
+
+      for (const node of nodes) {
+        const raw = node.frontmatter[field];
+        const values: string[] = Array.isArray(raw)
+          ? raw.filter((v): v is string => typeof v === 'string')
+          : typeof raw === 'string' ? [raw] : [];
+
+        for (const val of values) {
+          const normalized = val.trim().toLowerCase();
+          if (!normalized) continue;
+          const members = valueToMembers.get(normalized) ?? [];
+          members.push(node.id);
+          valueToMembers.set(normalized, members);
+        }
+      }
+
+      // Create hub nodes and edges
+      for (const [value, memberIds] of valueToMembers) {
+        const hubId = `${prefix}/${value}`;
+        const memberTitles = memberIds
+          .map(id => nodes.find(n => n.id === id)?.title ?? id)
+          .slice(0, 10);
+        const content = `Documents with ${field}: ${value}\n\n${memberTitles.map(t => `- ${t}`).join('\n')}`;
+
+        this.store.upsertNode({
+          id: hubId,
+          title: `${value} (${field})`,
+          content,
+          frontmatter: { _hub: true, _hubType: field, _hubValue: value },
+        });
+
+        // Embed the hub node
+        const text = Embedder.buildEmbeddingText(`${value} (${field})`, [], content);
+        const embedding = await this.embedder.embed(text);
+        this.store.upsertEmbedding(hubId, embedding);
+
+        // Create edges from each member to the hub
+        this.store.deleteAllEdgesFrom(hubId);
+        for (const memberId of memberIds) {
+          this.store.insertEdge({
+            sourceId: memberId,
+            targetId: hubId,
+            context: `${field}: ${value}`,
+            edgeType,
+          });
+          stats.edgesIndexed++;
+        }
+      }
+    }
   }
 }

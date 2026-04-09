@@ -5,10 +5,20 @@ export interface ParsedNode {
   frontmatter: Record<string, unknown>;
 }
 
+export type EdgeType =
+  | 'wiki-link'
+  | 'markdown-link'
+  | 'related'
+  | 'origin'
+  | 'tag'
+  | 'category'
+  | 'component';
+
 export interface ParsedEdge {
   sourceId: string;
   targetId: string;     // resolved path
   context: string;      // enclosing paragraph
+  edgeType?: EdgeType;  // defaults to 'wiki-link'
 }
 
 export interface StoredNode extends ParsedNode {
