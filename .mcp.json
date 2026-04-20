@@ -4,8 +4,7 @@
       "command": "npx",
       "args": ["tsx", "${CLAUDE_PLUGIN_ROOT}/src/mcp/index.ts"],
       "env": {
-        "KG_VAULT_PATH": "${KG_VAULT_PATH}",
-        "KG_DATA_DIR": "${KG_DATA_DIR}"
+        "KG_VAULT_PATH": "${KG_VAULT_PATH}"
       }
     }
   }
